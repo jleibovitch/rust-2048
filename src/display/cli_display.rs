@@ -5,7 +5,6 @@ use termion::input::TermRead;
 use super::Display;
 use super::super::grid;
 
-
 pub struct CLIDisplay;
 
 impl Display for CLIDisplay {
@@ -26,47 +25,43 @@ impl Display for CLIDisplay {
         let stdin = stdin();
         let mut stdout = stdout().into_raw_mode().unwrap();
         stdout.flush().unwrap();
+
+        let mut direction: Option<grid::Direction>;
        
         for c in stdin.keys() {
-            // write!(stdout,
-            //        "{}{}",
-            //        termion::cursor::Goto(1, 1),
-            //        termion::clear::CurrentLine)
-            //         .unwrap();
         
             match c.unwrap() {
 
                 Key::Char('q') => {
                     return true;
                 },
-                // Key::Char(c) => println!("{}", c),
-                // Key::Alt(c) => println!("^{}", c),
-                // Key::Ctrl(c) => println!("*{}", c),
-                // Key::Esc => println!("ESC"),
+             
                 Key::Left => {
-                    // println!(">");
-                    state.slide(grid::Direction::LEFT);
-                    break;
+                    
+                    direction = if state.move_left {Some(grid::Direction::LEFT)} else {None};
                 },
                 Key::Right => {
-                    state.slide(grid::Direction::RIGHT);
-                    break;
+                    direction = if state.move_right {Some(grid::Direction::RIGHT)} else {None};
                 },
                 Key::Up =>{
-                    state.slide(grid::Direction::UP);
-                    break;
+                    direction = if state.move_up {Some(grid::Direction::UP)} else {None};
                 },
                 Key::Down => {
-                    state.slide(grid::Direction::DOWN);
-                    break;
+                    direction = if state.move_down { Some(grid::Direction::DOWN) } else {None};
                 },
-
-                // Key::Backspace => println!("×"),
-                _ => {}
+                _ => {
+                    direction = None;
+                }
             }
            
-        }
-        state.random_tile();
+            if direction.is_some() {
+                state.update_board(state.slide(direction.unwrap()));
+                state.random_tile();
+                state.update_moves();
+                break;
+            }
+        }       
+
         false
     }
 

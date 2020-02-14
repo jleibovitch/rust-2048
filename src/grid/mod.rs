@@ -1,6 +1,7 @@
 use rand::Rng;
 use std::fmt;
 
+#[derive(Clone, Copy)]
 pub enum Direction {
     UP,
     DOWN,
@@ -13,6 +14,10 @@ type Board = [[u32; 4]; 4];
 #[derive(Debug)]
 pub struct Grid {    
     board: Board,
+    pub move_left: bool,
+    pub move_right: bool,
+    pub move_up: bool,
+    pub move_down: bool,
 }
 
 
@@ -20,25 +25,38 @@ impl Grid {
     pub fn new() -> Self {
 
         let  board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
-    
 
         let mut grid = Grid {
-            board
+            board,
+            move_left: true,
+            move_right: true,
+            move_up: true,
+            move_down: true,
         };
 
         grid.random_tile();
         grid.random_tile();
+
+        grid.update_moves();
         grid
     }
 
     #[allow(dead_code)]
     fn new_from_board(board: Board) -> Self {
-        Grid {
-            board
-        }
+        let mut g = Grid {
+            board,
+            move_left: true,
+            move_right: true,
+            move_up: true,
+            move_down: true,
+        };
+        g.update_moves();
+        g
     }
 
-    pub fn slide(&mut self, direction: Direction) {
+    pub fn slide(&self, direction: Direction) -> Board{
+
+        let mut board = self.board;
 
         match direction {
             Direction::LEFT => {
@@ -46,13 +64,13 @@ impl Grid {
                     let mut collisions = [false, false, false, false];
                     for j in 1..4 {
                         for k in 0..j {
-                            if self.board[i][j-k] > 0 && 
-                                (self.board[i][j-k-1] == self.board[i][j-k] && !collisions[j-k-1] && !collisions[j-k] || self.board[i][j-k-1] == 0){
-                                if self.board[i][j-k-1] == self.board[i][j-k] {
+                            if board[i][j-k] > 0 && 
+                                (board[i][j-k-1] == board[i][j-k] && !collisions[j-k-1] && !collisions[j-k] || board[i][j-k-1] == 0){
+                                if board[i][j-k-1] == board[i][j-k] {
                                     collisions[j-k-1] = true;
                                 }
-                                self.board[i][j-k-1] += self.board[i][j-k];
-                                self.board[i][j-k] = 0;
+                                board[i][j-k-1] += board[i][j-k];
+                                board[i][j-k] = 0;
                             }
                         }
                     }
@@ -63,12 +81,12 @@ impl Grid {
                     let mut collisions = [false, false, false, false];
                     for j in (0..3).rev() {
                         for k in 0..(3-j) {
-                            if self.board[i][j+k] > 0 && (self.board[i][j+k+1] == self.board[i][j+k] && !collisions[j+k+1] && !collisions[j+k]|| self.board[i][j+k+1] == 0) {
-                                if self.board[i][j+k+1] == self.board[i][j+k] {
+                            if board[i][j+k] > 0 && (board[i][j+k+1] == board[i][j+k] && !collisions[j+k+1] && !collisions[j+k]|| board[i][j+k+1] == 0) {
+                                if board[i][j+k+1] == board[i][j+k] {
                                     collisions[j+k+1] = true;
                                 }
-                                self.board[i][j+k+1] += self.board[i][j+k];
-                                self.board[i][j+k] = 0;
+                                board[i][j+k+1] += board[i][j+k];
+                                board[i][j+k] = 0;
                             }
                         }
                     }
@@ -79,12 +97,12 @@ impl Grid {
                     let mut collisions = [false, false, false, false];
                     for i in 1..4 {
                         for k in 0..i {
-                            if self.board[i-k][j] > 0 && (self.board[i-k-1][j] == self.board[i-k][j] && !collisions[i-k-1] && !collisions[i-k]|| self.board[i-k-1][j] == 0) {
-                                if self.board[i-k-1][j] == self.board[i-k][j] {
+                            if board[i-k][j] > 0 && (board[i-k-1][j] == board[i-k][j] && !collisions[i-k-1] && !collisions[i-k]|| board[i-k-1][j] == 0) {
+                                if board[i-k-1][j] == board[i-k][j] {
                                     collisions[i-k-1] = true;
                                 }
-                                self.board[i-k-1][j] += self.board[i-k][j];
-                                self.board[i-k][j] = 0;
+                                board[i-k-1][j] += board[i-k][j];
+                                board[i-k][j] = 0;
                             }
                         }
                     }
@@ -95,19 +113,19 @@ impl Grid {
                     let mut collisions = [false, false, false, false];
                     for i in (0..3).rev() {
                         for k in 0..(3-i) {
-                            if self.board[i+k][j] > 0 && (self.board[i+k+1][j] == self.board[i+k][j] && !collisions[i+k+1] && !collisions[i+k] || self.board[i+k+1][j] == 0) {
-                                if self.board[i+k+1][j] == self.board[i+k][j] {
+                            if board[i+k][j] > 0 && (board[i+k+1][j] == board[i+k][j] && !collisions[i+k+1] && !collisions[i+k] || board[i+k+1][j] == 0) {
+                                if board[i+k+1][j] == board[i+k][j] {
                                     collisions[i+k+1] = true;
                                 }
-                                self.board[i+k+1][j] += self.board[i+k][j];
-                                self.board[i+k][j] = 0;
+                                board[i+k+1][j] += board[i+k][j];
+                                board[i+k][j] = 0;
                             }
                         }
                     }
                 }
             }
         }
-
+        board
     }
 
     pub fn random_tile(&mut self) {
@@ -124,7 +142,8 @@ impl Grid {
            col = rng.gen_range(0,4);
         }
 
-        self.board[row][col] = 2;
+        
+        self.board[row][col] = if rng.gen_range(0,6) >= 2 { 2 } else { 4 };
     }
 
     fn count_filled(&self) -> u32 {
@@ -137,6 +156,47 @@ impl Grid {
             }
         }
         count
+    }
+
+    pub fn update_moves(&mut self) {
+
+        let directions = [Direction::LEFT, Direction::RIGHT, Direction::UP, Direction::DOWN];
+        for &direction in directions.iter() {
+
+            let updated = self.slide(direction);
+             
+            match direction {
+                Direction::LEFT => self.move_left = !(updated == self.board),
+                Direction::RIGHT => self.move_right = !(updated == self.board),
+                Direction::UP => self.move_up = !(updated == self.board),
+                Direction::DOWN => self.move_down = !(updated == self.board),
+            }
+            
+
+        }
+
+    }
+
+    pub fn update_board(&mut self, board: Board) {
+        self.board = board;
+    }
+
+    pub fn game_over(&self) -> (bool, bool) {
+
+        for i in 0..4 {
+            for j in 0..4 {
+                if self.board[i][j] == 2048 {
+                    return (true, true);
+                }
+            }
+        }
+
+        if self.move_down || self.move_up || self.move_left || self.move_right {
+            (false, false)
+        } else {
+            (true, false)
+        }
+
     }
 }  
 
@@ -162,15 +222,15 @@ impl fmt::Display for Grid {
 #[test]
 fn test_new() {
     let grid = Grid::new();
-    let mut count_2s = 0;
+    let mut count_filled = 0;
     for i in 0..4 {
         for j in 0..4 {
-            if grid.board[i][j] == 2 {
-                count_2s += 1;
+            if grid.board[i][j] >= 2 {
+                count_filled += 1;
             } 
         }
     }
-    assert_eq!(count_2s, 2);
+    assert_eq!(count_filled, 2);
 }
 
 #[test]
@@ -197,8 +257,7 @@ fn test_random_tile() {
 #[test]
 fn test_output() {
     let board = [[4, 4, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 2]];
-    let mut grid = Grid::new();
-    grid.board = board;
+    let grid = Grid::new_from_board(board);
 
     assert_eq!("+----+----+----+----+\n\
                 |   4|   4|   0|   0|\n\
@@ -224,29 +283,50 @@ fn test_slide() {
 
     let combine_vertical = [[4, 0, 0, 0], [2, 0, 0, 0], [2, 2, 2, 2], [0, 0, 0, 4]];
     let expected_vertical = [[4, 2,2 ,2], [4, 0, 0, 4], [0, 0,0 ,0], [0, 0, 0, 0]];
+
+    let grid_test = Grid::new_from_board(board);
+    let grid_h = Grid::new_from_board(combine_horizontal);
+    let grid_v = Grid::new_from_board(combine_vertical);
+
+    assert_eq!(grid_test.slide(Direction::LEFT), expected_left);
+    assert_eq!(grid_test.slide(Direction::RIGHT), expected_right);
+    assert_eq!(grid_test.slide(Direction::UP), expected_up);
+    assert_eq!(grid_test.slide(Direction::DOWN), expected_down);
+    assert_eq!(grid_h.slide(Direction::LEFT), expected_horizonal);
+    assert_eq!(grid_v.slide(Direction::UP), expected_vertical);
+
+}
+
+#[test]
+fn test_moves_available() {
+    let board = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]];
+
+    let no_moves = Grid::new_from_board(board);
     
-    let mut grid_left = Grid::new_from_board(board);
-    let mut grid_right =  Grid::new_from_board(board);
-    let mut grid_up = Grid::new_from_board(board);
-    let mut grid_down =  Grid::new_from_board(board);
+    assert_eq!(no_moves.move_left, false);
+    assert_eq!(no_moves.move_right, false);
+    assert_eq!(no_moves.move_up, false);
+    assert_eq!(no_moves.move_down, false);
+}
 
-    let mut grid_h = Grid::new_from_board(combine_horizontal);
-    let mut grid_v = Grid::new_from_board(combine_vertical);
+#[test]
+fn test_update_board() {
+    let board =  [[4, 4, 2, 0], [4, 0, 2, 0], [0, 0, 0, 0], [0, 0, 2, 2]];
+    let mut grid = Grid::new();
+    grid.update_board(board);
+    assert_eq!(grid.board, board);
+}
 
-    grid_left.slide(Direction::LEFT);
-    grid_right.slide(Direction::RIGHT);
-    grid_up.slide(Direction::UP);
-    grid_down.slide(Direction::DOWN);
-    grid_h.slide(Direction::LEFT);
-    grid_v.slide(Direction::UP);
+#[test]
+fn test_game_over() {
 
+    let grid1 = Grid::new_from_board([[4, 4, 2, 0], [4, 0, 2, 0], [0, 0, 0, 0], [0, 0, 2, 2]]);
+    let grid2 = Grid::new_from_board([[4, 4, 2, 0], [4, 0, 2, 0], [0, 0, 2048, 0], [0, 0, 2, 2]]);
 
-    assert_eq!(grid_left.board, expected_left);
-    assert_eq!(grid_right.board, expected_right);
-    assert_eq!(grid_up.board, expected_up);
-    assert_eq!(grid_down.board, expected_down);
-    assert_eq!(grid_h.board, expected_horizonal);
-    assert_eq!(grid_v.board, expected_vertical);
+    let grid3 = Grid::new_from_board([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]]);
+    assert_eq!(grid1.game_over(), (false, false));
+    assert_eq!(grid2.game_over(), (true, true));
+    assert_eq!(grid3.game_over(), (true, false));
 
 
 }
