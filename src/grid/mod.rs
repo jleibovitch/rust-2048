@@ -24,7 +24,7 @@ pub struct Grid {
 impl Grid {
     pub fn new() -> Self {
 
-        let  board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+        let board = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
 
         let mut grid = Grid {
             board,
@@ -198,6 +198,13 @@ impl Grid {
         }
 
     }
+
+    pub fn reset(&mut self) {
+        let new_grid = Grid::new();
+
+        self.board = new_grid.board;
+        self.update_moves();
+    }
 }  
 
 impl fmt::Display for Grid {
@@ -328,5 +335,22 @@ fn test_game_over() {
     assert_eq!(grid2.game_over(), (true, true));
     assert_eq!(grid3.game_over(), (true, false));
 
+
+}
+
+#[test]
+fn test_reset() {
+    let mut grid = Grid::new_from_board([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]]);
+
+    grid.reset();
+    let mut count_filled = 0;
+    for i in 0..4 {
+        for j in 0..4 {
+            if grid.board[i][j] >= 2 {
+                count_filled += 1;
+            } 
+        }
+    }
+    assert_eq!(count_filled, 2);
 
 }
