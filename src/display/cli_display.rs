@@ -152,9 +152,7 @@ impl<T> State<T> for grid::Grid where T: Display{
     }
 }
 
-pub struct Menu {
-
-}
+pub struct Menu;
 
 impl<T> State<T> for Menu 
  where T: Display {
@@ -175,9 +173,9 @@ Menu:
 1. Play
 2. How To Play
 3. Exit",
-       termion::cursor::Goto(1, 1),
-     termion::clear::All).unwrap();
-     stdout.flush().unwrap();
+        termion::cursor::Goto(1, 1),
+        termion::clear::All).unwrap();
+        stdout.flush().unwrap();
 
     }
     fn input(&mut self, display: &mut T) -> bool {
@@ -190,11 +188,59 @@ Menu:
                     display.set_state(Some(Box::new(grid::Grid::new()))); 
                     break;
                 },
+                Key::Char('2') => {
+                    display.set_state(Some(Box::new(Rules{}))); 
+                    break;
+                }
                 Key::Char('3') => return true,
+                Key::Char('q') => return true,
                 _ => break
             }
         }
        
+        false
+    }
+}
+
+struct Rules;
+
+impl<T> State<T> for Rules 
+ where T: Display {
+    fn render(&self) {
+        let mut stdout = stdout();
+        write!(stdout, "{}{}
+
+        How To Play:
+    
+    1. Slide the board to combine two identical numbers together. 
+    2. Each number may only be combined once per turn. 
+    3. If you run out of moves, you lose
+    4. Get to 2048 to win!
+
+
+        Game Controls:
+    Arrow Keys: Slide the board in the direction of the arrow key
+    q: quit the game
+
+    
+    Press q to return to main menu
+    ",termion::cursor::Goto(1, 1),
+        termion::clear::All).unwrap();
+    stdout.flush().unwrap();
+    }
+
+    fn input(&mut self, display: &mut T) -> bool {
+        let stdin = stdin();
+        let _stdout = stdout().into_raw_mode().unwrap();
+        for c in stdin.keys() {
+            match c.unwrap() {
+                Key::Char('q') => {
+                    display.set_state(Some(Box::new(Menu{})));
+                    break;
+                },
+                _ => {}
+            }
+        }
         false
     }
 }
