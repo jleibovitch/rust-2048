@@ -14,6 +14,7 @@ type Board = [[u32; 4]; 4];
 #[derive(Debug)]
 pub struct Grid {    
     board: Board,
+    pub score: u32,
     pub move_left: bool,
     pub move_right: bool,
     pub move_up: bool,
@@ -28,6 +29,7 @@ impl Grid {
 
         let mut grid = Grid {
             board,
+            score: 0,
             move_left: true,
             move_right: true,
             move_up: true,
@@ -45,6 +47,7 @@ impl Grid {
     fn new_from_board(board: Board) -> Self {
         let mut g = Grid {
             board,
+            score: 0,
             move_left: true,
             move_right: true,
             move_up: true,
@@ -54,9 +57,10 @@ impl Grid {
         g
     }
 
-    pub fn slide(&self, direction: Direction) -> Board{
+    pub fn slide(&self, direction: Direction) -> (Board, u32) {
 
         let mut board = self.board;
+        let mut score = 0;
 
         match direction {
             Direction::LEFT => {
@@ -68,6 +72,7 @@ impl Grid {
                                 (board[i][j-k-1] == board[i][j-k] && !collisions[j-k-1] && !collisions[j-k] || board[i][j-k-1] == 0){
                                 if board[i][j-k-1] == board[i][j-k] {
                                     collisions[j-k-1] = true;
+                                    score += board[i][j-k-1] * 2;
                                 }
                                 board[i][j-k-1] += board[i][j-k];
                                 board[i][j-k] = 0;
@@ -84,6 +89,7 @@ impl Grid {
                             if board[i][j+k] > 0 && (board[i][j+k+1] == board[i][j+k] && !collisions[j+k+1] && !collisions[j+k]|| board[i][j+k+1] == 0) {
                                 if board[i][j+k+1] == board[i][j+k] {
                                     collisions[j+k+1] = true;
+                                    score += board[i][j+k+1] * 2;
                                 }
                                 board[i][j+k+1] += board[i][j+k];
                                 board[i][j+k] = 0;
@@ -100,6 +106,7 @@ impl Grid {
                             if board[i-k][j] > 0 && (board[i-k-1][j] == board[i-k][j] && !collisions[i-k-1] && !collisions[i-k]|| board[i-k-1][j] == 0) {
                                 if board[i-k-1][j] == board[i-k][j] {
                                     collisions[i-k-1] = true;
+                                    score += board[i-k-1][j] * 2;
                                 }
                                 board[i-k-1][j] += board[i-k][j];
                                 board[i-k][j] = 0;
@@ -116,6 +123,7 @@ impl Grid {
                             if board[i+k][j] > 0 && (board[i+k+1][j] == board[i+k][j] && !collisions[i+k+1] && !collisions[i+k] || board[i+k+1][j] == 0) {
                                 if board[i+k+1][j] == board[i+k][j] {
                                     collisions[i+k+1] = true;
+                                    score += board[i+k+1][j] * 2;
                                 }
                                 board[i+k+1][j] += board[i+k][j];
                                 board[i+k][j] = 0;
@@ -125,7 +133,7 @@ impl Grid {
                 }
             }
         }
-        board
+        (board, score)
     }
 
     pub fn random_tile(&mut self) {
@@ -163,7 +171,7 @@ impl Grid {
         let directions = [Direction::LEFT, Direction::RIGHT, Direction::UP, Direction::DOWN];
         for &direction in directions.iter() {
 
-            let updated = self.slide(direction);
+            let (updated, _) = self.slide(direction);
              
             match direction {
                 Direction::LEFT => self.move_left = !(updated == self.board),
@@ -207,21 +215,43 @@ impl Grid {
     }
 }  
 
+fn color(val: u32) -> String {
+
+    let col_val = match val {
+        2 => "31",
+        4 => "32",
+        8 => "33",
+        16 => "34",
+        32 => "35",
+        64 => "36",
+        128 => "37",
+        256 => "91",
+        512 => "92",
+        1024 => "93",
+        2048 => "94",
+        _ => return format!("{:>4}", val),
+    };
+
+    format!("\x1B[7m\x1B[{}m{:>4}\x1B[0m", col_val, val)
+
+
+}
+
 impl fmt::Display for Grid {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "+----+----+----+----+\n\
-                    |{:>4}|{:>4}|{:>4}|{:>4}|\n\
+                    |{}|{}|{}|{}|\n\
                     +----+----+----+----+\n\
-                    |{:>4}|{:>4}|{:>4}|{:>4}|\n\
+                    |{}|{}|{}|{}|\n\
                     +----+----+----+----+\n\
-                    |{:>4}|{:>4}|{:>4}|{:>4}|\n\
+                    |{}|{}|{}|{}|\n\
                     +----+----+----+----+\n\
-                    |{:>4}|{:>4}|{:>4}|{:>4}|\n\
+                    |{}|{}|{}|{}|\n\
                     +----+----+----+----+", 
-            self.board[0][0], self.board[0][1], self.board[0][2], self.board[0][3],
-            self.board[1][0], self.board[1][1], self.board[1][2], self.board[1][3],
-            self.board[2][0], self.board[2][1], self.board[2][2], self.board[2][3],
-            self.board[3][0], self.board[3][1], self.board[3][2], self.board[3][3]
+            color(self.board[0][0]), color(self.board[0][1]), color(self.board[0][2]), color(self.board[0][3]),
+            color(self.board[1][0]), color(self.board[1][1]), color(self.board[1][2]), color(self.board[1][3]),
+            color(self.board[2][0]), color(self.board[2][1]), color(self.board[2][2]), color(self.board[2][3]),
+            color(self.board[3][0]), color(self.board[3][1]), color(self.board[3][2]), color(self.board[3][3])
         )
     }
 }
@@ -266,15 +296,17 @@ fn test_output() {
     let board = [[4, 4, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 2]];
     let grid = Grid::new_from_board(board);
 
-    assert_eq!("+----+----+----+----+\n\
-                |   4|   4|   0|   0|\n\
+    assert_eq!(format!(
+                "+----+----+----+----+\n\
+                |{}|{}|   0|   0|\n\
                 +----+----+----+----+\n\
                 |   0|   0|   0|   0|\n\
                 +----+----+----+----+\n\
                 |   0|   0|   0|   0|\n\
                 +----+----+----+----+\n\
-                |   0|   0|   0|   2|\n\
-                +----+----+----+----+", grid.to_string());
+                |   0|   0|   0|{}|\n\
+                +----+----+----+----+", 
+                color(4), color(4), color(2)), grid.to_string());
 }
 
 #[test]
@@ -295,12 +327,12 @@ fn test_slide() {
     let grid_h = Grid::new_from_board(combine_horizontal);
     let grid_v = Grid::new_from_board(combine_vertical);
 
-    assert_eq!(grid_test.slide(Direction::LEFT), expected_left);
-    assert_eq!(grid_test.slide(Direction::RIGHT), expected_right);
-    assert_eq!(grid_test.slide(Direction::UP), expected_up);
-    assert_eq!(grid_test.slide(Direction::DOWN), expected_down);
-    assert_eq!(grid_h.slide(Direction::LEFT), expected_horizonal);
-    assert_eq!(grid_v.slide(Direction::UP), expected_vertical);
+    assert_eq!(grid_test.slide(Direction::LEFT), (expected_left, 12));
+    assert_eq!(grid_test.slide(Direction::RIGHT), (expected_right, 12));
+    assert_eq!(grid_test.slide(Direction::UP), (expected_up, 12));
+    assert_eq!(grid_test.slide(Direction::DOWN), (expected_down, 12));
+    assert_eq!(grid_h.slide(Direction::LEFT), (expected_horizonal, 20));
+    assert_eq!(grid_v.slide(Direction::UP), (expected_vertical, 4));
 
 }
 

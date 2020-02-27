@@ -73,9 +73,10 @@ impl<T> State<T> for grid::Grid where T: Display{
         let mut stdout = stdout();
        
         write!(stdout,
-                "{}{}{}",
+                "{}{}\nScore: {}\n\n{}",
                 termion::cursor::Goto(1, 1),
                 termion::clear::All,
+                self.score,
                 self)
                 .unwrap(); 
 
@@ -141,8 +142,10 @@ impl<T> State<T> for grid::Grid where T: Display{
             }
            
             if direction.is_some() {
-                self.update_board(self.slide(direction.unwrap()));
+                let (next_board, score) = self.slide(direction.unwrap());
+                self.update_board(next_board);
                 self.random_tile();
+                self.score += score;
                 self.update_moves();
                 break;
             }
