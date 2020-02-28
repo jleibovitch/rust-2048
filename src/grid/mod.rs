@@ -217,7 +217,9 @@ impl Grid {
 
 fn color(val: u32) -> String {
 
-    let col_val = match val {
+    #[cfg(not(feature = "colorless"))]
+    { 
+        let col_val = match val {
         2 => "31",
         4 => "32",
         8 => "33",
@@ -232,9 +234,11 @@ fn color(val: u32) -> String {
         _ => return format!("{:>4}", val),
     };
 
-    format!("\x1B[7m\x1B[{}m{:>4}\x1B[0m", col_val, val)
+        format!("\x1B[7m\x1B[{}m{:>4}\x1B[0m", col_val, val)
+    }
 
-
+    #[cfg(feature = "colorless")]
+    format!("{:>4}", val)
 }
 
 impl fmt::Display for Grid {
