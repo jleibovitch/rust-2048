@@ -212,6 +212,7 @@ impl Grid {
 
         self.board = new_grid.board;
         self.update_moves();
+        self.score = 0;
     }
 }  
 
@@ -221,20 +222,20 @@ fn color(val: u32) -> String {
     { 
         let col_val = match val {
         2 => "31",
-        4 => "32",
-        8 => "33",
-        16 => "34",
-        32 => "35",
-        64 => "36",
-        128 => "37",
-        256 => "91",
-        512 => "92",
-        1024 => "93",
-        2048 => "94",
+        4 => "35",
+        8 => "44",
+        16 => "57",
+        32 => "196",
+        64 => "251",
+        128 => "128",
+        256 => "116",
+        512 => "170",
+        1024 => "220",
+        2048 => "227",
         _ => return format!("{:>4}", val),
     };
 
-        format!("\x1B[7m\x1B[{}m{:>4}\x1B[0m", col_val, val)
+        format!("\x1B[7m\x1B[38;5;{}m{:>4}\x1B[0m", col_val, val)
     }
 
     #[cfg(feature = "colorless")]
@@ -378,6 +379,7 @@ fn test_game_over() {
 fn test_reset() {
     let mut grid = Grid::new_from_board([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]]);
 
+    grid.score = 1000000;
     grid.reset();
     let mut count_filled = 0;
     for i in 0..4 {
@@ -388,5 +390,6 @@ fn test_reset() {
         }
     }
     assert_eq!(count_filled, 2);
+    assert_eq!(grid.score, 0);
 
 }
